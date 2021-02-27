@@ -4,30 +4,54 @@ import os
 from netifaces import AF_INET, AF_INET6, AF_LINK, AF_PACKET, AF_BRIDGE
 import netifaces as netif
 import logging
+from termcolor import colored, cprint 
+
 
 # Global variables
 initTime = time()
 
+# Quick functions
+def clr():
+    os.system('cls' if os.name == 'nt' else 'clear')
+def errprint(text):
+    print(colored(text, 'red'))
+
+
 def startup():
     def checkroot():
         if os.geteuid() != 0:
-            print("[✗] User does not have root/sudo permissions")
+            errprint("[✗] User does not have root/sudo permissions")
             exit()
-        else:
-            print("[✓] User has root/sudo permissions")
-    def interfacechk():
+        #else:
+        #    print("[✓] User has root/sudo permissions")
+    def interfacesetup():
+        # Checks if there are interfaces, if there are any it will export the list to a var
         interfacelist = netif.interfaces()
         if not interfacelist:
-            print("[✗] No interfaces available")
+            errprint("[✗] No interfaces available")
             exit()
-        else:
-            print("[✓] Available interfaces:", *interfacelist, sep=" ")
 
-    print("[+] HALscan initiated at: " + ctime(initTime))
+        # Allows for user to select from a list of network interfaces and sets it as a variable
+        global interface
+        interface = input("[?] Enter the interface you would like to use? %s: " % interfacelist)
+        if not any(word in interface for word in interfacelist):
+            errprint("[✗] Invalid option")
+            exit()
+        
+        # Gets and prints interface attributes
+        ## NOTE THIS DOES NOT WORK WITH MY eno1 INTERFACE FOR SOME REASON, FIX ASAP
+        macaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_LINK]])
+        ipaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_INET]])
+        print("[I] Interface Information")
+        print("    MAC Address: " + macaddr)
+        print("    IP Address: " + ipaddr)
+
+    clr()
+    print(colored("/// HALscan Version 1.0 ///", attrs=['bold']))
+    print("HALscan initiated at: " + ctime(initTime) + "\n")
     print("[+] Performing startup checks")
-
     checkroot()
-    interfacechk()
+    interfacesetup()
 
 
 
@@ -43,13 +67,8 @@ def netmapper():
 
 
 def main():
-    print("\n" + "/// HALscan Version 1.0 ///\n")
-
-    interface = input("Enter the interface you would like to use? %s: " % netif.interfaces() )
-    if any(word in interface for word in netif.interfaces()):
-        print("[✓] Valid choice")
-    else:
-        print("Invalid option")
+    print(interface)
+    
 
 
 
