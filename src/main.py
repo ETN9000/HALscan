@@ -1,13 +1,15 @@
 import socket
 from time import time, ctime, sleep
 import os
-from netifaces import AF_INET, AF_INET6, AF_LINK, AF_PACKET, AF_BRIDGE
+import sys
+from netifaces import *
 import netifaces as netif
-import logging
+import ipaddress
+
+
 from termcolor import colored, cprint
-from alive_progress import alive_bar
-
-
+from threading import *
+import signal
 
 # Global variables
 initTime = time()
@@ -18,6 +20,17 @@ def clr():
 def errprint(text):
     print(colored(text, 'red'))
 hal = colored("[", attrs=['bold']) + colored("•", 'red') + colored("]", attrs=['bold'])
+
+
+
+def exitHandler(signal, frame):
+    clr()
+    print("\n[!] Exitting now...")
+    os._exit(1)
+signal.signal(signal.SIGINT, exitHandler)
+
+
+
 
 def startup():
     def checkroot():
@@ -41,16 +54,25 @@ def startup():
         
         # Gets and prints interface attributes
         ## NOTE THIS DOES NOT WORK WITH MY eno1 INTERFACE FOR SOME REASON, FIX ASAP
-        print("[I] Interface Information")
 
-        macaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_LINK]])
-        print(" └─[ MAC Address: " + macaddr)        
+        global macaddr
+        global ipaddr
+        global subnet 
+
         try:
             ipaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_INET]])
-            print(" └─[ IP Address : " + ipaddr)
+            netmask = ''.join([i['netmask'] for i in netif.ifaddresses(interface)[netif.AF_INET]])
+            subnet = ipaddress.ip_network(ipaddr + "/" + netmask, strict=False)
+            print("[I] Interface Information")
+            print(" └─[ IP Subnet  : " + str(subnet))
         except:
-            errprint("[!] Interface has no IP address")
+            errprint("[!] Interface has no valid IP address, cannot continue")
+            exit()
 
+        macaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_LINK]])
+        print(" └─[ MAC Address: " + macaddr)
+    
+    
     clr()
     print(hal + colored(" /// HALscan Version 1.0 ///", attrs=['bold']))
     print("HALscan initiated at: " + ctime(initTime) + "\n")
@@ -58,24 +80,29 @@ def startup():
     checkroot()
     interfacesetup()
 
-
 def main():
     print("[!] Startup complete!")
-    print("[!] Running a dummy task!")
-    
-    def compute():
-        for i in range(1000):
-            sleep(.05)  # process items
-            yield  # insert this and you're done!
+    #userconsent = input("[?] Would you like to begin scanning the subnet? [y/n]: ")
+    #if userconsent != "y":
+    #    errprint("[!] Shutting down")
+    #    exit()
 
-    with alive_bar(1000) as bar:
-        for i in compute():
-            bar()
-    
+    def portCheck(target_ip, port):
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            conn = s.connect((target_ip, port))
+            return True
+        except:
+            return False
 
 
+    for i in subnet:
+        if (portCheck(i, 80) == True):
+            print(str(i) + " has port 80 open")
 
 
 
 startup()
 main()
+
+## NOTE THIS IS NOT CURRENTLY FUNCTIONAL
