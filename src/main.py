@@ -1,10 +1,12 @@
 import socket
-from time import time, ctime
+from time import time, ctime, sleep
 import os
 from netifaces import AF_INET, AF_INET6, AF_LINK, AF_PACKET, AF_BRIDGE
 import netifaces as netif
 import logging
-from termcolor import colored, cprint 
+from termcolor import colored, cprint
+from alive_progress import alive_bar
+
 
 
 # Global variables
@@ -15,7 +17,7 @@ def clr():
     os.system('cls' if os.name == 'nt' else 'clear')
 def errprint(text):
     print(colored(text, 'red'))
-
+hal = colored("[", attrs=['bold']) + colored("•", 'red') + colored("]", attrs=['bold'])
 
 def startup():
     def checkroot():
@@ -43,31 +45,29 @@ def startup():
         macaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_LINK]])
         ipaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_INET]])
         print("[I] Interface Information")
-        print("    MAC Address: " + macaddr)
-        print("    IP Address: " + ipaddr)
+        print(" └─[ MAC Address: " + macaddr)
+        print(" └─[ IP Address : " + ipaddr)
 
     clr()
-    print(colored("/// HALscan Version 1.0 ///", attrs=['bold']))
+    print(hal + colored(" /// HALscan Version 1.0 ///", attrs=['bold']))
     print("HALscan initiated at: " + ctime(initTime) + "\n")
     print("[+] Performing startup checks")
     checkroot()
     interfacesetup()
 
 
-
-
-def netmapper():
-    print("[I] Beginning Network Mapping on")
-
-
-
-
-
-
-
-
 def main():
-    print(interface)
+    print("[!] Startup complete!")
+    print("[!] Running a dummy task!")
+    
+    def compute():
+        for i in range(1000):
+            sleep(.05)  # process items
+            yield  # insert this and you're done!
+
+    with alive_bar(1000) as bar:
+        for i in compute():
+            bar()
     
 
 
