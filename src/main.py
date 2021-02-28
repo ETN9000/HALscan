@@ -24,8 +24,7 @@ def startup():
         if os.geteuid() != 0:
             errprint("[✗] User does not have root/sudo permissions")
             exit()
-        #else:
-        #    print("[✓] User has root/sudo permissions")
+
     def interfacesetup():
         # Checks if there are interfaces, if there are any it will export the list to a var
         interfacelist = netif.interfaces()
@@ -42,11 +41,15 @@ def startup():
         
         # Gets and prints interface attributes
         ## NOTE THIS DOES NOT WORK WITH MY eno1 INTERFACE FOR SOME REASON, FIX ASAP
-        macaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_LINK]])
-        ipaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_INET]])
         print("[I] Interface Information")
-        print(" └─[ MAC Address: " + macaddr)
-        print(" └─[ IP Address : " + ipaddr)
+
+        macaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_LINK]])
+        print(" └─[ MAC Address: " + macaddr)        
+        try:
+            ipaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_INET]])
+            print(" └─[ IP Address : " + ipaddr)
+        except:
+            errprint("[!] Interface has no IP address")
 
     clr()
     print(hal + colored(" /// HALscan Version 1.0 ///", attrs=['bold']))
