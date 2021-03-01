@@ -7,8 +7,7 @@ from netifaces import *
 import netifaces as netif
 import ipaddress
 import socket
-
-from pythonping import ping
+from tcping import Ping
 
 import argparse
 
@@ -21,8 +20,8 @@ def errprint(text):
     print(colored(text, 'red'))
 def sprint(text):
     print(colored(text, 'green'))
-hal = colored("[", attrs=['bold']) + colored("•", 'red') + colored("]", attrs=['bold'])
 
+hal = colored("[", attrs=['bold']) + colored("•", 'red') + colored("]", attrs=['bold'])
 
 def exitHandler(signal, frame):
     print("\n[!] Exitting now...")
@@ -60,13 +59,14 @@ def startup():
             netmask = ''.join([i['netmask'] for i in netif.ifaddresses(interface)[netif.AF_INET]])
             subnet = ipaddress.ip_network(ipaddr + "/" + netmask, strict=False)
             print("[I] Interface Information")
-            print(" └─[ IP Subnet  : " + str(subnet))
+            print(" └─[ Name       : %s" % interface)
+            print(" └─[ IP Subnet  : %s" % str(subnet))
         except:
             errprint("[!] Interface has no valid IP address, cannot continue")
             exit()
 
         macaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_LINK]])
-        print(" └─[ MAC Address: " + macaddr)
+        print(" └─[ MAC Address: %s" % macaddr)
     
     
     clr()
@@ -76,40 +76,37 @@ def startup():
     checkroot()
     interfacesetup()
 
-
 def portScan(target_ip, port):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(0.3)
+        s.settimeout(0.1)
         conn = s.connect_ex((target_ip, port))
         if conn == 0:
             sprint("[V] %s:%s open" % (target_ip, port))
+            pass
         else:
-            errprint("[X] %s:%s" % (target_ip, port))
-
-
-
+            #errprint("[X] %s:%s" % (target_ip, port))
+            pass
 
 
 
 def main():
     print("[!] Startup complete!")
-    global initTime
-    initTime = time()
     #userconsent = input("[?] Would you like to begin scanning the subnet? [y/n]: ")
     #if userconsent != "y":
     #    errprint("[!] Shutting down")
     #    exit()
 
-    portlist = [22]
-
-    for ip in ipaddress.IPv4Network(subnet):
-        for port in portlist:
-            portScan(str(ip), port)
-            pass
-    else:
-        print("[!] Scan complete!")
-        print("[I] Time taken: " + (time() - initTime))
-
+    def subnet_scanner():
+        portlist = [22, 80]
+        for ip in ipaddress.IPv4Network(subnet):
+            for port in portlist:
+                portScan(str(ip), port)
+            else:
+                pass
+        else:
+            print("[!] Scan complete!")
+    
+    subnet_scanner()
 
 startup()
 main()
