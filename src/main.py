@@ -1,16 +1,18 @@
-import socket
 from time import time, ctime, sleep
 import os
 import sys
+import signal
+
 from netifaces import *
 import netifaces as netif
 import ipaddress
+import socket
 
-import threading
-from queue import Queue
+from pythonping import ping
+
+import argparse
 
 from termcolor import colored, cprint
-import signal
 
 # Quick functions
 def clr():
@@ -69,20 +71,25 @@ def startup():
     
     clr()
     print(hal + colored(" /// HALscan Version 1.0 ///", attrs=['bold']))
-    print("HALscan initiated at: " + ctime(initTime) + "\n")
+    print("HALscan initiated at: " + ctime(time()) + "\n")
     print("[+] Performing startup checks")
     checkroot()
     interfacesetup()
 
 
-def portCheck(target_ip, port):
+def portScan(target_ip, port):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(1)
+        s.settimeout(0.3)
         conn = s.connect_ex((target_ip, port))
         if conn == 0:
             sprint("[V] %s:%s open" % (target_ip, port))
         else:
             errprint("[X] %s:%s" % (target_ip, port))
+
+
+
+
+
 
 def main():
     print("[!] Startup complete!")
@@ -93,13 +100,15 @@ def main():
     #    errprint("[!] Shutting down")
     #    exit()
 
-    portlist = [22, 80, 433]
+    portlist = [22]
 
     for ip in ipaddress.IPv4Network(subnet):
         for port in portlist:
-            portCheck(str(ip), port)
+            portScan(str(ip), port)
+            pass
     else:
         print("[!] Scan complete!")
+        print("[I] Time taken: " + (time() - initTime))
 
 
 startup()
