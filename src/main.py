@@ -6,31 +6,26 @@ from netifaces import *
 import netifaces as netif
 import ipaddress
 
+import threading
+from queue import Queue
 
 from termcolor import colored, cprint
-from threading import *
 import signal
-
-# Global variables
-initTime = time()
 
 # Quick functions
 def clr():
     os.system('cls' if os.name == 'nt' else 'clear')
 def errprint(text):
     print(colored(text, 'red'))
+def sprint(text):
+    print(colored(text, 'green'))
 hal = colored("[", attrs=['bold']) + colored("•", 'red') + colored("]", attrs=['bold'])
 
 
-
 def exitHandler(signal, frame):
-    clr()
     print("\n[!] Exitting now...")
     os._exit(1)
 signal.signal(signal.SIGINT, exitHandler)
-
-
-
 
 def startup():
     def checkroot():
@@ -58,7 +53,6 @@ def startup():
         global macaddr
         global ipaddr
         global subnet 
-
         try:
             ipaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_INET]])
             netmask = ''.join([i['netmask'] for i in netif.ifaddresses(interface)[netif.AF_INET]])
@@ -80,29 +74,33 @@ def startup():
     checkroot()
     interfacesetup()
 
+
+def portCheck(target_ip, port):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(1)
+        conn = s.connect_ex((target_ip, port))
+        if conn == 0:
+            sprint("[V] %s:%s open" % (target_ip, port))
+        else:
+            errprint("[X] %s:%s" % (target_ip, port))
+
 def main():
     print("[!] Startup complete!")
+    global initTime
+    initTime = time()
     #userconsent = input("[?] Would you like to begin scanning the subnet? [y/n]: ")
     #if userconsent != "y":
     #    errprint("[!] Shutting down")
     #    exit()
 
-    def portCheck(target_ip, port):
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn = s.connect((target_ip, port))
-            return True
-        except:
-            return False
+    portlist = [22, 80, 433]
 
-
-    for i in subnet:
-        if (portCheck(i, 80) == True):
-            print(str(i) + " has port 80 open")
-
+    for ip in ipaddress.IPv4Network(subnet):
+        for port in portlist:
+            portCheck(str(ip), port)
+    else:
+        print("[!] Scan complete!")
 
 
 startup()
 main()
-
-## NOTE THIS IS NOT CURRENTLY FUNCTIONAL
