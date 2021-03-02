@@ -7,7 +7,9 @@ from netifaces import *
 import netifaces as netif
 import ipaddress
 import socket
-from tcping import Ping
+
+import concurrent.futures
+import logging
 
 import argparse
 
@@ -94,7 +96,7 @@ def startup():
 
 def portScan(target_ip, port):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(0.1)
+        s.settimeout(0.3)
         conn = s.connect_ex((target_ip, port))
         if conn == 0:
             sprint("[V] %s:%s open" % (target_ip, port))
@@ -107,21 +109,17 @@ def portScan(target_ip, port):
 
 def main():
     print("[!] Startup complete!")
-    userconsent = input("[?] Would you like to begin scanning the subnet? [y/n]: ")
-    if userconsent != "y":
-        errprint("[!] Shutting down")
-        exit()
+    #userconsent = input("[?] Would you like to begin scanning the subnet? [y/n]: ")
+    #if userconsent != "y":
+    #    errprint("[!] Shutting down")
+    #    exit()
 
     def subnet_scanner():
         portlist = [22, 80]
-        for ip in ipaddress.IPv4Network(subnet):
-            for port in portlist:
-                portScan(str(ip), port)
-            else:
-                pass
-        else:
-            print("[!] Scan complete!")
-    
+        with concurrent.futures.ProcessPoolExecutor(max_workers=50) as executor:
+            for ip in ipaddress.IPv4Network(subnet):
+                for port in portlist:
+                    executor.submit(portScan, str(ip), port)
     subnet_scanner()
 
 startup()
