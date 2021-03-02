@@ -38,6 +38,7 @@ def parser():
                         help='Interface to use (eg. wlan0, eth0)')
     parser.add_argument('--threads', dest='threads', type=int, nargs='?',
                         help='Amount of threads to use (default: 10)')
+    #parser.add_argument('--verbose', '-v', dest="verbose", type=bool)
     args = parser.parse_args()
 
 def interfacesetup():
@@ -109,8 +110,11 @@ def portScan(target_ip, port):
         if conn == 0:
             sprint("[V] %s:%s open" % (target_ip, port))
             pass
+        elif conn == 11:
+            logging.debug("[X] %s:%s closed" % (target_ip, port))
         else:
             #errprint("[X] %s:%s" % (target_ip, port))
+            logging.debug("[I] SOCKET CODE: %s" % conn)
             pass
 
 
@@ -129,6 +133,7 @@ def main():
                 for port in portlist:
                     executor.submit(portScan, str(ip), port)
     subnet_scanner()
-
+### ADD DEBUG OPTION TO MENU LATER
+# logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
 startup()
 main()
