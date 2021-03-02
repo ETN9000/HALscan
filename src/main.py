@@ -66,9 +66,6 @@ def interfacesetup():
         if not any(word in interface for word in interfacelist):
             errprint("[X] Invalid option")
             exit()
-        
-    # Gets and prints interface attributes
-    ## NOTE THIS DOES NOT WORK WITH MY eno1 INTERFACE FOR SOME REASON, FIX ASAP
 
     try:
         ipaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_INET]])
