@@ -28,51 +28,67 @@ def exitHandler(signal, frame):
     os._exit(1)
 signal.signal(signal.SIGINT, exitHandler)
 
+def parser():
+    global args
+    parser = argparse.ArgumentParser(description='Network scanning utility')
+    parser.add_argument('interface', metavar='-i', type=str, nargs='?',
+                        help='Interface to use (eg. wlan0, eth0)')
+    args = parser.parse_args()
+
+def interfacesetup():
+    
+    global macaddr
+    global ipaddr
+    global subnet 
+
+    # Checks if there are interfaces, if there are any it will export the list to a var
+    interfacelist = netif.interfaces()
+    if not interfacelist:
+        errprint("[✗] No interfaces available")
+        exit()
+
+    # Allows for user to select from a list of network interfaces and sets it as a variable
+    global interface
+    if args.interface:
+        if any(word in args.interface for word in interfacelist):
+            interface = args.interface
+        else:
+            errprint("[X] Invalid interface specified")
+            exit()
+    else:
+        interface = input("[?] Enter the interface you would like to use? %s: " % interfacelist)
+        if not any(word in interface for word in interfacelist):
+            errprint("[X] Invalid option")
+            exit()
+        
+    # Gets and prints interface attributes
+    ## NOTE THIS DOES NOT WORK WITH MY eno1 INTERFACE FOR SOME REASON, FIX ASAP
+
+    try:
+        ipaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_INET]])
+        netmask = ''.join([i['netmask'] for i in netif.ifaddresses(interface)[netif.AF_INET]])
+        subnet = ipaddress.ip_network(ipaddr + "/" + netmask, strict=False)
+        print("[I] Interface Information")
+        print(" └─[ Name       : %s" % interface)
+        print(" └─[ IP Subnet  : %s" % str(subnet))
+    except:
+        errprint("[!] Interface has no valid IP address, cannot continue")
+        exit()
+
+    macaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_LINK]])
+    print(" └─[ MAC Address: %s" % macaddr)
+
+
 def startup():
     def checkroot():
         if os.geteuid() != 0:
             errprint("[✗] User does not have root/sudo permissions")
             exit()
 
-    def interfacesetup():
-        # Checks if there are interfaces, if there are any it will export the list to a var
-        interfacelist = netif.interfaces()
-        if not interfacelist:
-            errprint("[✗] No interfaces available")
-            exit()
-
-        # Allows for user to select from a list of network interfaces and sets it as a variable
-        global interface
-        interface = input("[?] Enter the interface you would like to use? %s: " % interfacelist)
-        if not any(word in interface for word in interfacelist):
-            errprint("[✗] Invalid option")
-            exit()
-        
-        # Gets and prints interface attributes
-        ## NOTE THIS DOES NOT WORK WITH MY eno1 INTERFACE FOR SOME REASON, FIX ASAP
-
-        global macaddr
-        global ipaddr
-        global subnet 
-        try:
-            ipaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_INET]])
-            netmask = ''.join([i['netmask'] for i in netif.ifaddresses(interface)[netif.AF_INET]])
-            subnet = ipaddress.ip_network(ipaddr + "/" + netmask, strict=False)
-            print("[I] Interface Information")
-            print(" └─[ Name       : %s" % interface)
-            print(" └─[ IP Subnet  : %s" % str(subnet))
-        except:
-            errprint("[!] Interface has no valid IP address, cannot continue")
-            exit()
-
-        macaddr = ''.join([i['addr'] for i in netif.ifaddresses(interface)[netif.AF_LINK]])
-        print(" └─[ MAC Address: %s" % macaddr)
-    
-    
     clr()
     print(hal + colored(" /// HALscan Version 1.0 ///", attrs=['bold']))
     print("HALscan initiated at: " + ctime(time()) + "\n")
-    print("[+] Performing startup checks")
+    parser()
     checkroot()
     interfacesetup()
 
@@ -91,10 +107,10 @@ def portScan(target_ip, port):
 
 def main():
     print("[!] Startup complete!")
-    #userconsent = input("[?] Would you like to begin scanning the subnet? [y/n]: ")
-    #if userconsent != "y":
-    #    errprint("[!] Shutting down")
-    #    exit()
+    userconsent = input("[?] Would you like to begin scanning the subnet? [y/n]: ")
+    if userconsent != "y":
+        errprint("[!] Shutting down")
+        exit()
 
     def subnet_scanner():
         portlist = [22, 80]
