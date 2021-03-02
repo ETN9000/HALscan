@@ -9,11 +9,10 @@
     <img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/etn9000/halscan?style=flat-square">
 </p>
 
-HALscan is a scanning utility created in Python. It is designed for scanning large subnets in a small amount of time.
+HALscan is a scanning utility created in Python. It is designed for scanning large subnets in a small amount of time via multi-threading.
 Currently in development, so not all features have been implemented yet.
 
 ### Planned features
-- Multithreading
 - IPv6 support
 - Non-root support
 - Visual mapping

@@ -26,6 +26,7 @@ def sprint(text):
 hal = colored("[", attrs=['bold']) + colored("•", 'red') + colored("]", attrs=['bold'])
 
 def exitHandler(signal, frame):
+    clr()
     print("\n[!] Exitting now...")
     os._exit(1)
 signal.signal(signal.SIGINT, exitHandler)
@@ -33,8 +34,10 @@ signal.signal(signal.SIGINT, exitHandler)
 def parser():
     global args
     parser = argparse.ArgumentParser(description='Network scanning utility')
-    parser.add_argument('interface', metavar='-i', type=str, nargs='?',
+    parser.add_argument('--interface', dest='interface', type=str, nargs='?',
                         help='Interface to use (eg. wlan0, eth0)')
+    parser.add_argument('--threads', dest='threads', type=int, nargs='?',
+                        help='Amount of threads to use (default: 10)')
     args = parser.parse_args()
 
 def interfacesetup():
@@ -86,7 +89,12 @@ def startup():
         if os.geteuid() != 0:
             errprint("[✗] User does not have root/sudo permissions")
             exit()
-
+    def argcheck():
+        global thread_count
+        if args.threads:
+            thread_count = args.threads
+        else:
+            thread_count = 10
     clr()
     print(hal + colored(" /// HALscan Version 1.0 ///", attrs=['bold']))
     print("HALscan initiated at: " + ctime(time()) + "\n")
