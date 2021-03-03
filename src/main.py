@@ -41,6 +41,7 @@ def parser():
     parser.add_argument('--threads', dest='threads', type=int, nargs='?',
                         help='Amount of threads to use (default: 10)')
     parser.add_argument('--debug', action="store_true", help='Show debugging information')
+    parser.add_argument('--noconfirm', action="store_true", help='Scan network without user confirming')
     args = parser.parse_args()
 
 
@@ -127,10 +128,11 @@ def portScan(target_ip, port):
 
 def main():
     print("[!] Startup complete!")
-    #userconsent = input("[?] Would you like to begin scanning the subnet? [y/n]: ")
-    #if userconsent != "y":
-    #    errprint("[!] Shutting down")
-    #    exit()
+    if not args.noconfirm:
+        userconsent = input("[?] Would you like to begin scanning the subnet? [y/n]: ")
+        if userconsent != "y":
+            errprint("[!] Shutting down")
+            exit()
 
     def subnet_scanner():
         portlist = [80]
