@@ -1,7 +1,7 @@
 <p align="center">
     <img src="img/logo.png" width="100px"></img>
 </p>
-<h1 align="center"> <b>HALscanner v1.0 by ETN9000</b> </h1>
+<h1 align="center"> <b>HALscanner by ETN9000</b> </h1>
 
 <p align="center">
     <img alt="GitHub" src="https://img.shields.io/github/license/etn9000/halscan?style=flat-square">
