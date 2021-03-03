@@ -45,9 +45,6 @@ def parser():
     args = parser.parse_args()
 
 
-
-
-
 def interfacesetup():
     
     global macaddr
@@ -102,8 +99,8 @@ def startup():
             thread_count = 10
 
     clr()
-    print(hal + colored(" /// HALscan Version 1.0 ///", attrs=['bold']))
-    print("HALscan initiated at: " + ctime(time()) + "\n")
+    print(hal + colored(" /// HALscanner Version 1.0 ///", attrs=['bold']))
+    print("Initiated at: " + ctime(time()) + "\n")
     checkroot()
     interfacesetup()
 
