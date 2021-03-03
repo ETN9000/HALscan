@@ -36,8 +36,8 @@ def parser():
     parser = argparse.ArgumentParser(description='Network scanning utility')
     parser.add_argument('--interface', dest='interface', type=str, nargs='?',
                         help='Interface to use (eg. wlan0, eth0)')
-    parser.add_argument('-p','--ports', dest='ports', type=list, nargs='?',
-                        help='Ports to scan (eg: 80,443)')
+    parser.add_argument('-p','--ports', dest='ports', type=int, nargs='+', required=True,
+                        help="Ports to scan (eg: '-p 80 443')")
     parser.add_argument('--threads', dest='threads', type=int, nargs='?',
                         help='Amount of threads to use (default: 10)')
     parser.add_argument('--debug', action="store_true", help='Show debugging information')
@@ -101,6 +101,7 @@ def startup():
     clr()
     print(hal + colored(" /// HALscanner Version 1.0 ///", attrs=['bold']))
     print("Initiated at: " + ctime(time()) + "\n")
+    argcheck()
     checkroot()
     interfacesetup()
 
@@ -132,8 +133,8 @@ def main():
             exit()
 
     def subnet_scanner():
-        portlist = [80]
-        with concurrent.futures.ProcessPoolExecutor(max_workers=50) as executor:
+        portlist = args.ports
+        with concurrent.futures.ProcessPoolExecutor(max_workers=thread_count) as executor:
             for ip in ipaddress.IPv4Network(subnet):
                 for port in portlist:
                     executor.submit(portScan, str(ip), port)
