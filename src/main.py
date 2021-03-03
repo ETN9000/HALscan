@@ -36,10 +36,16 @@ def parser():
     parser = argparse.ArgumentParser(description='Network scanning utility')
     parser.add_argument('--interface', dest='interface', type=str, nargs='?',
                         help='Interface to use (eg. wlan0, eth0)')
+    parser.add_argument('-p','--ports', dest='ports', type=list, nargs='?',
+                        help='Ports to scan (eg: 80,443)')
     parser.add_argument('--threads', dest='threads', type=int, nargs='?',
                         help='Amount of threads to use (default: 10)')
-    #parser.add_argument('--verbose', '-v', dest="verbose", type=bool)
+    parser.add_argument('--debug', action="store_true", help='Show debugging information')
     args = parser.parse_args()
+
+
+
+
 
 def interfacesetup():
     
@@ -93,10 +99,10 @@ def startup():
             thread_count = args.threads
         else:
             thread_count = 10
+
     clr()
     print(hal + colored(" /// HALscan Version 1.0 ///", attrs=['bold']))
     print("HALscan initiated at: " + ctime(time()) + "\n")
-    parser()
     checkroot()
     interfacesetup()
 
@@ -106,9 +112,12 @@ def portScan(target_ip, port):
         conn = s.connect_ex((target_ip, port))
         if conn == 0:
             sprint("[V] %s:%s open" % (target_ip, port))
+            logging.debug("[X] %s:%s successful connection" % (target_ip, port))
             pass
         elif conn == 11:
             logging.debug("[X] %s:%s closed" % (target_ip, port))
+        elif conn == 111:
+            logging.debug("[X] %s:%s connection refused" % (target_ip, port))
         else:
             #errprint("[X] %s:%s" % (target_ip, port))
             logging.debug("[I] SOCKET CODE: %s" % conn)
@@ -124,13 +133,17 @@ def main():
     #    exit()
 
     def subnet_scanner():
-        portlist = [22, 80]
+        portlist = [80]
         with concurrent.futures.ProcessPoolExecutor(max_workers=50) as executor:
             for ip in ipaddress.IPv4Network(subnet):
                 for port in portlist:
                     executor.submit(portScan, str(ip), port)
     subnet_scanner()
-### ADD DEBUG OPTION TO MENU LATER
-# logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
+
+parser()
+
+if args.debug:
+    logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
+
 startup()
 main()
