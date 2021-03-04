@@ -12,6 +12,7 @@ import concurrent.futures
 import logging
 
 import argparse
+import re
 
 from termcolor import colored, cprint
 
@@ -34,14 +35,19 @@ signal.signal(signal.SIGINT, exitHandler)
 def parser():
     global args
     parser = argparse.ArgumentParser(description='Network scanning utility')
-    parser.add_argument('--interface', dest='interface', type=str, nargs='?',
+    parser.add_argument('-i','--interface', dest='interface', type=str, nargs='?',
                         help='Interface to use (eg. wlan0, eth0)')
-    parser.add_argument('-p','--ports', dest='ports', type=int, nargs='+', required=True,
-                        help="Ports to scan (eg: '-p 80 443')")
-    parser.add_argument('--threads', dest='threads', type=int, nargs='?',
+    
+    parser.add_argument('-p', '--ports',
+                        dest='ports',
+                        type=int,
+                        nargs='+', required=True,
+                        help="Ports to scan (eg: '-p 80 443 8080')")
+    
+    parser.add_argument('-t','--threads', dest='threads', type=int, nargs='?', default='10',
                         help='Amount of threads to use (default: 10)')
     parser.add_argument('--debug', action="store_true", help='Show debugging information')
-    parser.add_argument('--noconfirm', action="store_true", help='Scan network without user confirming')
+    parser.add_argument('--noconfirm', action="store_true", help='Do not require user confirmation to scan')
     args = parser.parse_args()
 
 
