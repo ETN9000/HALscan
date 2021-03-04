@@ -18,3 +18,5 @@ Currently in development, so not all features have been implemented yet.
 - Visual mapping
 - Service fingerprinting
 - IDS evasion (detection prevention)
+
+> NOTE: Despite being able to run on Windows, funcationality is greatly reduced.
